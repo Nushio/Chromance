@@ -6,9 +6,9 @@
    (C) Voidstar Lab 2021
 */
 
-#include <Adafruit_DotStar.h>
+
+#include <Adafruit_NeoPixel.h>
 #include <SPI.h>
-#include <ArduinoOSC.h>
 #include <WiFi.h>
 #include <ESPmDNS.h>
 #include <WiFiUdp.h>
@@ -27,12 +27,12 @@ const int recv_port = 42069;  // Port that OSC data should be sent to (pick one,
 
 int lengths[] = {154, 168, 84, 154};  // Strips are different lengths because I am a dumb
 
-Adafruit_DotStar strip0(lengths[0], 15, 2, DOTSTAR_BRG);
-Adafruit_DotStar strip1(lengths[1], 0, 4, DOTSTAR_BRG);
-Adafruit_DotStar strip2(lengths[2], 16, 17, DOTSTAR_BRG);
-Adafruit_DotStar strip3(lengths[3], 5, 18, DOTSTAR_BRG);
+Adafruit_NeoPixel strip0(lengths[0], 15, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip1(lengths[1], 0, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip2(lengths[2], 16, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip3(lengths[3], 5, NEO_GRB + NEO_KHZ800);
 
-Adafruit_DotStar strips[4] = {strip0, strip1, strip2, strip3};
+Adafruit_NeoPixel strips[4] = {strip0, strip1, strip2, strip3};
 
 byte ledColors[40][14][3];  // LED buffer - each ripple writes to this, then we write this to the strips
 float decay = 0.95;  // Multiply all LED's by this amount each tick to create fancy fading tails
@@ -133,73 +133,6 @@ void setup() {
   Serial.print("WiFi connected, IP = ");
   Serial.println(WiFi.localIP());
 
-  // Subscribe to OSC transmissions for important data
-  OscWiFi.subscribe(recv_port, "/EmotiBit/0/EDA", [](const OscMessage & m) {  // This weird syntax is a lambda expression (anonymous nameless function)
-    lastKnownTemperature = m.arg<float>(0);
-  });
-
-  OscWiFi.subscribe(recv_port, "/EmotiBit/0/GYRO:X", [](const OscMessage & m) {
-    gyroX = m.arg<float>(0) * gyroAlpha + gyroX * (1 - gyroAlpha);
-  });
-
-  OscWiFi.subscribe(recv_port, "/EmotiBit/0/GYRO:Y", [](const OscMessage & m) {
-    gyroY = m.arg<float>(0) * gyroAlpha + gyroY * (1 - gyroAlpha);
-  });
-
-  OscWiFi.subscribe(recv_port, "/EmotiBit/0/GYRO:Z", [](const OscMessage & m) {
-    gyroZ = m.arg<float>(0) * gyroAlpha + gyroZ * (1 - gyroAlpha);
-  });
-
-  // Heartbeat detection and visualization happens here
-  OscWiFi.subscribe(recv_port, "/EmotiBit/0/PPG:IR", [](const OscMessage & m) {
-    float reading = m.arg<float>(0);
-    Serial.println(reading);
-
-    int hue = 0;
-
-    //  Ignore heartbeat when finger is wiggling around - it's not accurate
-    float gyroTotal = abs(gyroX) + abs(gyroY) + abs(gyroZ);
-
-    if (gyroTotal < gyroThreshold && lastIrReading >= reading) {
-      // Our hand is sitting still and the reading dropped - let's pulse!
-      Serial.print("> ");
-      Serial.println(highestIrReading - reading);
-      if (highestIrReading - reading >= heartbeatDelta) {
-        if (millis() - lastHeartbeat >= heartbeatLockout) {
-          hue = fmap(lastKnownTemperature, lowTemperature, highTemperature, 0xFFFF, 0);
-          for (int i = 0; i < 6; i++) {
-            if (nodeConnections[15][i] > 0) {
-              bool firedRipple = false;
-              // Find a dead ripple to reuse it
-              for (int j = 0; j < 30; j++) {
-                if (!firedRipple && ripples[j].state == dead) {
-                  ripples[j].start(
-                    15,
-                    i,
-                    strip0.ColorHSV(hue, 255, 255),
-                    float(random(100)) / 100.0 * .2 + .8,
-                    500,
-                    2);
-
-                  firedRipple = true;
-                }
-              }
-            }
-          }
-        }
-
-        lastHeartbeat = millis();
-      }
-    }
-    else {
-      highestIrReading = 0;
-    }
-
-    lastIrReading = reading;
-    if (reading > highestIrReading)
-      highestIrReading = reading;
-  });
-
   // Wireless OTA updating? On an ARDUINO?! It's more likely than you think!
   ArduinoOTA
   .onStart([]() {
@@ -236,8 +169,6 @@ void setup() {
 
 void loop() {
   unsigned long benchmark = millis();
-
-  OscWiFi.parse();
 
   ArduinoOTA.handle();
 
