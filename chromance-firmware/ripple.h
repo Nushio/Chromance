@@ -10,7 +10,7 @@
 //#define DEBUG_ADVANCEMENT  // Print debug messages about ripples' movement
 //#define DEBUG_RENDERING  // Print debug messages about translating logical to actual position
 
-#include <Adafruit_DotStar.h>
+#include <Adafruit_NeoPixel.h>
 #include "mapping.h"
 
 enum rippleState {

@@ -20,17 +20,16 @@ const char* ssid = "YourMom";
 const char* password = "is a nice lady";
 
 // WiFi stuff - CHANGE FOR YOUR OWN NETWORK!
-const IPAddress ip(4, 20, 6, 9);  // IP address that THIS DEVICE should request
-const IPAddress gateway(192, 168, 1, 1);  // Your router
-const IPAddress subnet(255, 255, 254, 0);  // Your subnet mask (find it from your router's admin panel)
-const int recv_port = 42069;  // Port that OSC data should be sent to (pick one, put same one in EmotiBit's OSC Config XML file)
+const IPAddress ip(192, 168, 178, 9);  // IP address that THIS DEVICE should request
+const IPAddress gateway(192, 168, 178, 1);  // Your router
+const IPAddress subnet(255, 255, 255, 0);  // Your subnet mask (find it from your router's admin panel)
 
 int lengths[] = {154, 168, 84, 154};  // Strips are different lengths because I am a dumb
 
-Adafruit_NeoPixel strip0(lengths[0], 15, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel strip1(lengths[1], 0, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel strip2(lengths[2], 16, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel strip3(lengths[3], 5, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip0(lengths[0], 16, NEO_GRB + NEO_KHZ800); // blue
+Adafruit_NeoPixel strip1(lengths[1], 4, NEO_GRB + NEO_KHZ800); // green
+Adafruit_NeoPixel strip2(lengths[2], 0, NEO_GRB + NEO_KHZ800); // red
+Adafruit_NeoPixel strip3(lengths[3], 2, NEO_GRB + NEO_KHZ800); // black
 
 Adafruit_NeoPixel strips[4] = {strip0, strip1, strip2, strip3};
 
