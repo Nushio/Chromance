@@ -99,7 +99,7 @@ float gyroX, gyroY, gyroZ;
 #define simulatedBiometricsEnabled false  // Simulate heartbeat and EDA ripples
 
 #define autoPulseTimeout 5000  // If no heartbeat is received in this many ms, begin firing random/simulated pulses
-#define randomPulseTime 1000  // Fire a random pulse every (this many) ms
+unsigned long randomPulseTime = 1000;  // Fire a random pulse every (this many) ms
 unsigned long lastRandomPulse;
 
 #define simulatedHeartbeatBaseTime 600  // Fire a simulated heartbeat pulse after at least this many ms
@@ -108,6 +108,16 @@ unsigned long lastRandomPulse;
 #define simulatedEdaVariance 10000
 unsigned long nextSimulatedHeartbeat;
 unsigned long nextSimulatedEda;
+
+unsigned long lifespan = 3000;
+float minSpeed = .5;
+float rndSpeed = .2;
+signed int fixedBaseColor = random(0xFFFF);
+signed int fixedColorSpread = 0xFFFF;
+float brightness = 1.0;
+
+#include "webserver.h"
+
 
 void setup() {
   Serial.begin(115200);
@@ -164,6 +174,8 @@ void setup() {
   Serial.println("Ready for WiFi OTA updates");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
+
+  setupWebServer();
 }
 
 void loop() {
@@ -193,9 +205,9 @@ void loop() {
                         ledAssignments[segment][2], ledAssignments[segment][1]));
       strips[strip].setPixelColor(
         led,
-        ledColors[segment][fromBottom][0],
-        ledColors[segment][fromBottom][1],
-        ledColors[segment][fromBottom][2]);
+        brightness * ledColors[segment][fromBottom][0],
+        brightness * ledColors[segment][fromBottom][1],
+        brightness * ledColors[segment][fromBottom][2]);
     }
   }
 
@@ -217,8 +229,8 @@ void loop() {
         }
       }
 
-      unsigned int baseColor = random(0xFFFF);
-
+      unsigned int colorOffset = random(6);
+      
       for (int i = 0; i < 6; i++) {
         if (nodeConnections[node][i] >= 0) {
           for (int j = 0; j < numberOfRipples; j++) {
@@ -226,9 +238,9 @@ void loop() {
               ripples[j].start(
                 node,
                 i,
-                strip0.ColorHSV(baseColor + (0xFFFF / 6) * i, 255, 255),
-                float(random(100)) / 100.0 * .2 + .5,
-                3000,
+                strip0.ColorHSV(fixedBaseColor + (fixedColorSpread / 6) * ((i + colorOffset) % 6), 255, 255),
+                float(random(100)) / 100.0 * rndSpeed + minSpeed,
+                lifespan,
                 1);
 
               break;
