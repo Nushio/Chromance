@@ -47,7 +47,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 <body>
   <h2>Chromance</h2>
   <p>Overall brightness: <span id="brightnessTextValue">%BRIGHTNESS_VALUE%</span></p>
-  <p><input type="range" onchange="updateSlider(this.value, 'brightnessTextValue', 'brightnessSlider', 'brightness')" id="brightnessSlider" min=".1" max="1.0" value="%BRIGHTNESS_VALUE%" step=".1" class="slider"></p>
+  <p><input type="range" onchange="updateSlider(this.value, 'brightnessTextValue', 'brightnessSlider', 'brightness')" id="brightnessSlider" min="1" max="255" value="%BRIGHTNESS_VALUE%" step="1" class="slider"></p>
   <p>Load a template:</p>
   <p><select id="templateSelect" onchange="selectTemplate(this)">
     <option value="null" disabled="true" selected="selected">Choose a template</option>
@@ -147,7 +147,7 @@ void processSliderChange(AsyncWebServerRequest *request) {
     param = request->getParam(PARAM_INPUT_INDEX)->value();
 
     if (param == "brightness") {
-      brightness = value.toFloat();
+      brightness = value.toInt();
       request->send(200, "text/plain", "OK");
     } 
     else if (param == "decay") {

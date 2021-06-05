@@ -114,7 +114,7 @@ float minSpeed = .5;
 float rndSpeed = .2;
 signed int fixedBaseColor = random(0xFFFF);
 signed int fixedColorSpread = 0xFFFF;
-float brightness = 1.0;
+signed int brightness = 255;
 
 #include "webserver.h"
 
@@ -205,14 +205,17 @@ void loop() {
                         ledAssignments[segment][2], ledAssignments[segment][1]));
       strips[strip].setPixelColor(
         led,
-        brightness * ledColors[segment][fromBottom][0],
-        brightness * ledColors[segment][fromBottom][1],
-        brightness * ledColors[segment][fromBottom][2]);
+        ledColors[segment][fromBottom][0],
+        ledColors[segment][fromBottom][1],
+        ledColors[segment][fromBottom][2]);
     }
   }
 
   for (int i = 0; i < 4; i++)
+  {
+    strips[i].setBrightness(brightness);
     strips[i].show();
+  }
 
   if (millis() - lastHeartbeat >= autoPulseTimeout) {
     // When biometric data is unavailable, visualize at random
