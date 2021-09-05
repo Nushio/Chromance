@@ -32,7 +32,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE HTML><html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Chromance</title>
+  <title>Chromancer</title>
   <style>
     html {font-family: Arial; display: inline-block; text-align: center;}
     h2 {font-size: 2.3rem;}
@@ -45,7 +45,37 @@ const char index_html[] PROGMEM = R"rawliteral(
   </style>
 </head>
 <body>
-  <h2>Chromance</h2>
+  <h2>Chromancer</h2>
+  <p>Flag Mode: 
+    <select id="flagModeValue" onchange="updateFlagMode(this.value)">
+    <optgroup>
+      <option value="off">Off</option>
+    </optgroup>
+    <optgroup>
+      <option value="rgb">rgb</option>
+    </optgroup>
+    <optgroup label="Flags">
+      <option value="mexico">Mexico</option>
+      <option value="usa">USA</option>
+      <option value="germany">Germany</option>
+      <option value="brazil">Brazil</option>
+      <option value="wales">Wales</option>
+    </optgroup>
+    <optgroup label="PokeBalls">
+      <option value="pokeball">Poke Ball</option>
+      <option value="greatball">Great Ball</option>
+      <option value="ultraball">Ultra Ball</option>
+      <option value="masterball">Master Ball</option>
+    </optgroup>
+    </select>
+  <p>Red: <span id="redValue">%RED_VALUE%</span></p>
+  <p><input type="range" onchange="updateSlider(this.value, 'redValue', 'redSlider', 'red')" id="redSlider" min="0" max="255" value="%RED_VALUE%" step="1" class="slider"></p>
+  <p>Green: <span id="greenValue">%GREEN_VALUE%</span></p>
+  <p><input type="range" onchange="updateSlider(this.value, 'greenValue', 'greenSlider', 'green')" id="greenSlider" min="0" max="255" value="%GREEN_VALUE%" step="1" class="slider"></p>
+  
+  <p>Blue: <span id="blueValue">%BLUE_VALUE%</span></p>
+  <p><input type="range" onchange="updateSlider(this.value, 'blueValue', 'blueSlider', 'blue')" id="blueSlider" min="0" max="255" value="%BLUE_VALUE%" step="1" class="slider"></p>
+  
   <p>Overall brightness: <span id="brightnessTextValue">%BRIGHTNESS_VALUE%</span></p>
   <p><input type="range" onchange="updateSlider(this.value, 'brightnessTextValue', 'brightnessSlider', 'brightness')" id="brightnessSlider" min="1" max="255" value="%BRIGHTNESS_VALUE%" step="1" class="slider"></p>
   <p>Load a template:</p>
@@ -73,6 +103,12 @@ function updateSlider(sliderValue, textElmId, sliderElmId, paramName) {
   console.log(sliderValue);
   var xhr = new XMLHttpRequest();
   xhr.open("GET", "/slider?value="+sliderValue+"&param="+paramName, true);
+  xhr.send();
+}
+function updateFlagMode(flagValue){
+  console.log(flagValue);
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "/flag?value="+flagValue, true);
   xhr.send();
 }
 var templates = {
@@ -111,6 +147,15 @@ for(key in templates)
 
 // Replaces placeholder with button section in your web page
 String processor(const String& var){
+  if (var == "RED_VALUE"){
+    return String(customRed);
+  }
+  if (var == "BLUE_VALUE"){
+    return String(customBlue);
+  }
+  if (var == "GREEN_VALUE"){
+    return String(customGreen);
+  }
   if (var == "BRIGHTNESS_VALUE"){
     return String(brightness);
   }
@@ -137,6 +182,13 @@ String processor(const String& var){
   }
   return String();
 }
+void processFlagChange(AsyncWebServerRequest *request) {
+  String value;
+  if (request->hasParam(PARAM_INPUT_VALUE)) {
+    value = request->getParam(PARAM_INPUT_VALUE)->value();
+    flagMode=value;
+  }
+}
 
 void processSliderChange(AsyncWebServerRequest *request) {
   String value;
@@ -146,6 +198,18 @@ void processSliderChange(AsyncWebServerRequest *request) {
     value = request->getParam(PARAM_INPUT_VALUE)->value();
     param = request->getParam(PARAM_INPUT_INDEX)->value();
 
+    if (param == "red") {
+        customRed = value.toInt();
+        request->send(200, "text/plain", "OK");
+      } 
+    if (param == "green") {
+      customGreen = value.toInt();
+      request->send(200, "text/plain", "OK");
+    } 
+    if (param == "blue") {
+      customBlue = value.toInt();
+      request->send(200, "text/plain", "OK");
+    } 
     if (param == "brightness") {
       brightness = value.toInt();
       request->send(200, "text/plain", "OK");
@@ -199,6 +263,6 @@ void setupWebServer(){
   });
 
   server.on("/slider", HTTP_GET, &processSliderChange);
-
+  server.on("/flag", HTTP_GET, &processFlagChange);
   server.begin();
 }

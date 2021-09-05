@@ -16,20 +16,26 @@
 #include "mapping.h"
 #include "ripple.h"
 
-const char* ssid = "YourMom";
-const char* password = "is a nice lady";
+const char* ssid = "yourmom";
+const char* password = "isanicelady";
+
+String flagMode="off";
+
+int customRed = 0;
+int customGreen = 0;
+int customBlue = 0;
 
 // WiFi stuff - CHANGE FOR YOUR OWN NETWORK!
-const IPAddress ip(192, 168, 178, 9);  // IP address that THIS DEVICE should request
-const IPAddress gateway(192, 168, 178, 1);  // Your router
+const IPAddress ip(192, 168, 86, 252);  // IP address that THIS DEVICE should request
+const IPAddress gateway(192, 168, 86, 1);  // Your router
 const IPAddress subnet(255, 255, 255, 0);  // Your subnet mask (find it from your router's admin panel)
 
 int lengths[] = {154, 168, 84, 154};  // Strips are different lengths because I am a dumb
-
-Adafruit_NeoPixel strip0(lengths[0], 16, NEO_GRB + NEO_KHZ800); // blue
-Adafruit_NeoPixel strip1(lengths[1], 4, NEO_GRB + NEO_KHZ800); // green
-Adafruit_NeoPixel strip2(lengths[2], 0, NEO_GRB + NEO_KHZ800); // red
-Adafruit_NeoPixel strip3(lengths[3], 2, NEO_GRB + NEO_KHZ800); // black
+               // 11,  12,  6,  11
+Adafruit_NeoPixel strip0(lengths[0], 16, NEO_GRB + NEO_KHZ800); // blue /data/ yellow (3)
+Adafruit_NeoPixel strip1(lengths[1], 4, NEO_GRB + NEO_KHZ800); // green /data/ white (4)
+Adafruit_NeoPixel strip2(lengths[2], 0, NEO_GRB + NEO_KHZ800); // red /data/ green (1)
+Adafruit_NeoPixel strip3(lengths[3], 2, NEO_GRB + NEO_KHZ800); // black /data/ blue (2)
 
 Adafruit_NeoPixel strips[4] = {strip0, strip1, strip2, strip3};
 
@@ -203,6 +209,8 @@ void loop() {
                         fromBottom,
                         0, 13,
                         ledAssignments[segment][2], ledAssignments[segment][1]));
+
+      
       strips[strip].setPixelColor(
         led,
         ledColors[segment][fromBottom][0],
@@ -244,7 +252,9 @@ void loop() {
                 strip0.ColorHSV(fixedBaseColor + (fixedColorSpread / 6) * ((i + colorOffset) % 6), 255, 255),
                 float(random(100)) / 100.0 * rndSpeed + minSpeed,
                 lifespan,
-                1);
+                1,
+                flagMode,
+                customRed,customGreen,customBlue);
 
               break;
             }
@@ -267,7 +277,9 @@ void loop() {
                 0xEE1111,
                 float(random(100)) / 100.0 * .1 + .4,
                 1000,
-                0);
+                0,
+                flagMode,
+                customRed,customGreen,customBlue);
 
               break;
             }
@@ -297,7 +309,9 @@ void loop() {
                 0x1111EE,
                 float(random(100)) / 100.0 * .5 + 2,
                 300,
-                2
+                2,
+                flagMode,
+                customRed,customGreen,customBlue
               );
 
               break;
